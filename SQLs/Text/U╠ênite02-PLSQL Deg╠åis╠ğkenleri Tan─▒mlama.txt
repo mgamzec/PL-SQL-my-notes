@@ -1,0 +1,402 @@
+--------------------------------------------
+--Değişkenlere Değer Atama
+--------------------------------------------
+
+declare
+    v_sehir varchar2(50);
+    v_ulke  varchar2(50) := 'Türkiye';
+  
+begin
+
+    dbms_output.put_line('Şehir İsmi: ' || v_sehir); 
+    
+    v_sehir := 'İstanbul';
+    
+    dbms_output.put_line('Şehir İsmi: ' || v_sehir);
+
+    dbms_output.put_line('-----------------------------');
+
+    v_ulke := 'Almanya';
+    
+    dbms_output.put_line('Ülke İsmi: ' || v_ulke);
+    
+end;
+
+
+--------------------------------------------
+--Değişkenleri SQL İçinde Kullanma
+--------------------------------------------
+
+declare
+    v_maas number;
+    v_ad varchar2(50);
+    
+begin
+
+    select maas, ad into v_maas, v_ad
+    from personel
+    where personel_id = 5006;
+    
+    dbms_output.put_line('Adı: '||v_ad||', Maaşı:'||v_maas); 
+  
+end;
+
+--------------------------------------------
+--String Veri Tipleri
+--------------------------------------------
+
+declare
+    v_char    char(10);
+    v_varchar varchar2(10);
+    v_clob    clob;
+
+begin
+
+    v_char    := 'Oracle';
+    v_varchar := 'Oracle';
+    v_clob    := 'Oracle';
+
+    dbms_output.put_line(v_char);
+    dbms_output.put_line(v_varchar);
+    dbms_output.put_line(v_clob);
+  
+end;
+
+--------------------------------------------
+-- String Ayıracı
+--------------------------------------------
+
+declare
+    v_etkinlik varchar2(20);
+
+begin
+
+    v_etkinlik := 'Ahmet''in doğum günü';
+    dbms_output.put_line(v_etkinlik);
+
+    v_etkinlik := q'!Selen'in partisi!';
+    dbms_output.put_line(v_etkinlik);
+
+    v_etkinlik := q'[BMW'nin tanıtımı]';
+    dbms_output.put_line(v_etkinlik);
+    
+end;
+
+--------------------------------------------
+--Tarih-Zaman Veri Tipleri
+--------------------------------------------
+
+declare
+  v_sure1 interval year to month := '03-02';
+  v_sure2 interval year to month := interval '6' month;
+  v_sure3 interval day to second := '40 10:20:10';
+  v_sure4 interval day to second := interval '5 5:5:5' day to second;
+
+begin
+
+  dbms_output.put_line(to_char(sysdate, 'dd.mm.yyyy hh24:mi:ss'));
+  dbms_output.put_line(sysdate + v_sure1);
+  dbms_output.put_line(sysdate + v_sure2);
+  dbms_output.put_line(to_char(sysdate + v_sure3, 'dd.mm.yyyy hh24:mi:ss'));
+  dbms_output.put_line(to_char(sysdate + v_sure4, 'dd.mm.yyyy hh24:mi:ss'));
+  
+end;
+
+--------------------------------------------
+--Veri Tiplerini Dönüştürme
+--------------------------------------------
+
+declare
+  v_maas varchar2(10) := '10000';
+  v_prim number := 2000;
+  v_toplam number;
+
+begin
+  
+  v_toplam := v_maas + v_prim;
+  dbms_output.put_line(v_toplam);
+
+end;
+
+--------------------------------------------
+
+declare
+  v_maas varchar2(10) := '10000';
+  v_prim number := 2000;
+  v_toplam number;
+
+begin
+  
+  v_toplam := to_number(v_maas) + v_prim;
+  dbms_output.put_line(v_toplam);
+
+end;
+
+--------------------------------------------
+
+declare
+    v_tarih1 date; 
+    v_tarih2 date; 
+    v_tarih3 date; 
+    
+begin
+  
+    v_tarih1 := to_date('15 February 2020', 'dd month yyyy');
+    v_tarih2 := '15.02.2020';
+    v_tarih3 := '15 February 2020';
+
+    dbms_output.put_line(v_tarih1);
+    dbms_output.put_line(v_tarih2);
+    dbms_output.put_line(v_tarih3);
+    
+end;
+
+--------------------------------------------
+--%TYPE İle Değişken Tanımlama
+--------------------------------------------
+
+declare
+    v_maas  personel.maas%type;
+    v_ad    personel.ad%type;
+    v_tarih personel.giris_tarihi%type;
+    
+begin
+
+    select maas, ad, giris_tarihi
+    into   v_maas, v_ad, v_tarih
+    from personel
+    where personel_id = 5010;
+    
+    dbms_output.put_line('Adı: '   ||v_ad); 
+    dbms_output.put_line('Maaşı:'  ||v_maas); 
+    dbms_output.put_line('Tarihi:' ||v_tarih); 
+  
+end;
+
+--------------------------------------------
+--Boolean Değişken Tanımlama
+--------------------------------------------
+
+declare
+    v_uygun         boolean;
+    v_tarih1        date := to_date('01.02.2021', 'dd.mm.yyyy');
+    v_tarih2        date;
+
+begin
+
+    v_tarih2 := to_date('01 February 2021', 'dd month yyyy');
+
+    if v_tarih1 = v_tarih2 then
+       v_uygun := true;
+    else
+       v_uygun := false;
+    end if;
+
+    if v_uygun then
+       dbms_output.put_line('TRUE – Tarihler Aynı');
+    else
+        dbms_output.put_line('FALSE – Tarihler Farklı');
+    end if;
+    
+end;
+
+--------------------------------------------
+
+declare
+    v_pers_maas number;
+    v_max_maas number := 5000;
+    v_maas_uygun boolean := false;
+    v_personel_id pls_integer := 5005;
+    
+begin
+    select maas into v_pers_maas
+    from personel
+    where personel_id = v_personel_id;
+    
+    if v_pers_maas < v_max_maas then
+       v_maas_uygun := true;
+    end if;
+       
+    if v_maas_uygun then
+       dbms_output.put_line('Maaş uygun');
+    else   
+       dbms_output.put_line('Maaş uygun değil: '|| v_pers_maas);
+    end if;   
+end; 
+
+--------------------------------------------
+--Bind Değişkenler
+--------------------------------------------
+
+variable b_sonuc number
+begin
+
+    select sum(maas) into :b_sonuc from personel;
+
+end;
+print b_sonuc;
+
+--------------------------------------------
+
+variable b_sonuc number
+set autoprint on
+declare
+  v_unvan varchar2(30) := &unvan;
+begin
+
+    select sum(maas) into :b_sonuc
+    from personel where unvan = v_unvan;
+
+end;
+
+--------------------------------------------
+
+variable b_unvan varchar2(30)
+begin
+
+    select unvan into :b_unvan from personel where personel_id = 5000;
+
+end;
+
+print b_unvan;
+select ad, soyad, unvan from personel where unvan = :b_unvan;
+
+-----------------------------------------------------
+--ALIŞTIRMALARIN CEVAPLARI
+-----------------------------------------------------
+
+--------------------------------------------
+--Değişkenleri SQL İçinde Kullanma
+--------------------------------------------
+
+declare
+    v_name varchar2(50);
+    v_title varchar2(150);
+    v_title_of_courtesy varchar2(50);   
+begin
+
+    select e.first_name || ' ' || e.last_name, e.title, e.title_of_courtesy 
+        into v_name, v_title, v_title_of_courtesy
+    from employees e
+    where e.employee_id = 7;
+    
+    dbms_output.put_line(v_title_of_courtesy || ' ' || v_name||', '||v_title); 
+  
+end;
+
+--------------------------------------------
+--String Veri Tipleri
+--------------------------------------------
+
+declare
+    v_str1 varchar2(20);
+    v_str2 varchar2(20);
+    v_str3 varchar2(20);
+
+begin
+
+    v_str1    := 'Ankara';
+    v_str2    := 'İzmir';
+    v_str3    := v_str1 || ',' || v_str2;
+
+    dbms_output.put_line(v_str3);
+  
+end;
+
+--------------------------------------------
+--Tarih-Zaman Veri Tipleri
+--------------------------------------------
+
+declare
+    v_tarih1 date;
+    v_sure interval day to second := '40 01:00:00';
+
+begin
+
+    v_tarih1 := to_date('01.09.’ || to_char(sysdate,'yyyy’) || ' 19:00', 'dd.mm.yyyy hh24:mi');
+    
+    dbms_output.put_line('1. Seminer Tarihi: ' || to_char(v_tarih1, 'dd.mm.yyyy hh24:mi:ss'));
+    dbms_output.put_line('2. Seminer Tarihi: ' || to_char(v_tarih1 + v_sure, 'dd.mm.yyyy hh24:mi:ss'));
+    dbms_output.put_line('3. Seminer Tarihi: ' || to_char(v_tarih1 + v_sure + v_sure, 'dd.mm.yyyy hh24:mi:ss'));
+  
+end;
+
+--Alternatif cevap:
+
+select 
+    to_char(tarih1,'dd.mm.yyyy hh24:mi') tarih1, 
+    to_char(tarih1+sure,'dd.mm.yyyy hh24:mi') tarih2, 
+    to_char(tarih1+sure*2,'dd.mm.yyyy hh24:mi') tarih3
+from
+(
+    select to_date('01.09.'||to_char(sysdate,'yyyy')||' 19:00', 'dd.mm.yyyy hh24:mi') tarih1,
+        to_dsinterval('40 01:00:00') sure
+    from dual
+)
+
+--------------------------------------------
+--%TYPE İle Değişken Tanımlama
+--------------------------------------------
+
+declare
+    v_customer_id   customers.customer_id%type;
+    v_company_name  customers.company_name%type;
+    v_order_date    orders.order_date%type;
+    v_freight       orders.freight%type;
+begin
+
+    select c.customer_id, c.company_name, o.order_date, o.freight
+        into v_customer_id, v_company_name, v_order_date, v_freight
+    from orders o, customers c
+    where order_id = 10303
+        and o.customer_id = c.customer_id;
+    
+    dbms_output.put_line('Customer ID: '|| v_customer_id);
+    dbms_output.put_line('Company Name: '|| v_company_name); 
+    dbms_output.put_line('Order Date: '|| v_order_date); 
+    dbms_output.put_line('Order Amount: '|| v_freight); 
+  
+end;
+--------------------------------------------
+--Boolean Değişken Tanımlama
+--------------------------------------------
+
+declare
+    v_hedef integer := 90;
+    v_hedef_sonucu boolean := false;
+    v_count smallint;
+begin
+
+    select count(*) into v_count from customers;
+    
+    if v_count > v_hedef then 
+        v_hedef_sonucu := true;
+    end if;
+    
+    if v_hedef_sonucu then
+        dbms_output.put_line('Müşteri hedefine ulaşıldı, tebrikler :)');
+    else 
+        dbms_output.put_line('Biraz daha gayret lütfen!');
+    end if;
+  
+end;
+
+--------------------------------------------
+--Bind Değişkenler
+--------------------------------------------
+
+variable v_sum_freight_koln number
+set autoprint on
+
+begin
+
+    select sum(freight) into :v_sum_freight_koln 
+    from orders 
+    where ship_city = 'Köln';
+
+end;
+/
+
+select ship_city, sum(freight) from orders 
+group by ship_city
+having sum(freight) > :v_sum_freight_koln;

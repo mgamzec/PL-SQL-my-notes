@@ -1,0 +1,216 @@
+--------------------------------------------
+--SELECT İfadesinin Kullanımı
+--------------------------------------------
+
+declare
+    v_ps_ismi varchar2(70);
+begin
+
+    select ad||' '||soyad
+    into   v_ps_ismi
+    from personel
+    where personel_id = 5007;
+    
+    dbms_output.put_line('Personel İsmi: '||v_ps_ismi);
+    
+end;
+
+--------------------------------------------
+
+declare
+    v_ps_ismi  varchar2(70);
+    v_ps_unvan varchar2(30);
+    v_ps_maas  number;
+begin
+
+    select ad||' '||soyad, unvan, maas
+    into   v_ps_ismi, v_ps_unvan, v_ps_maas
+    from personel
+    where personel_id = 5007;
+    
+    dbms_output.put_line('Personel İsmi: '  ||v_ps_ismi);
+    dbms_output.put_line('Personel Unvanı: '||v_ps_unvan);
+    dbms_output.put_line('Personel Maaşı: ' ||v_ps_maas);
+    
+end;
+
+--------------------------------------------
+--Belirsizliklerin Kaldırılması
+--------------------------------------------
+
+declare
+    ad    varchar2(70);
+    unvan varchar2(30);
+    maas  number;
+    personel_id number;
+begin
+
+    select ad, unvan, maas
+    into   ad, unvan, maas
+    from personel
+    where personel_id = 5007;
+    
+    delete from personel where personel_id = personel_id 
+end;
+
+--------------------------------------------
+--PL/SQL İçinde Verileri Değiştirme - INSERT
+--------------------------------------------
+
+declare
+    v_max_id number;
+begin
+    
+    select max(dept_id) into v_max_id 
+    from departman; 
+    
+    insert into departman (dept_id, dept_ismi)
+    values(v_max_id +1, 'Müşteri Elde Tutma');
+    
+    commit;
+end;
+
+--------------------------------------------
+--PL/SQL İçinde Verileri Değiştirme - UPDATE
+--------------------------------------------
+
+declare
+    v_artis_orani number := 21;
+
+begin
+    
+    update personel
+    set maas = maas + maas * (v_artis_orani / 100);
+
+    .....
+
+    --commit / rollback;
+    
+end;
+
+--------------------------------------------
+--PL/SQL İçinde Verileri Değiştirme - DELETE
+--------------------------------------------
+
+declare
+    v_dept_id departman.dept_id%type := 100;
+
+begin
+    
+    delete from departman 
+    where dept_id = v_dept_id;
+    
+end;
+
+--------------------------------------------
+--SQL Cursor (Implicit) – SQL%ROWCOUNT
+--------------------------------------------
+
+declare
+    v_unvan personel.unvan%type := 'UZMAN';
+    v_silinen_sayi number;
+
+begin
+    
+    delete from personel 
+    where unvan = v_unvan;
+    
+    v_silinen_sayi := SQL%ROWCOUNT;
+    
+    dbms_output.put_line('Silinen Kayıt Sayısı: ' || v_silinen_sayi);
+    
+end;
+
+--------------------------------------------
+--SQL Cursor Özellikleri (Implicit) – SQL%FOUND
+--------------------------------------------
+
+declare
+    v_sayi number;
+
+begin
+    
+    update konum set konum_adi = 'İstanbul Çekmeköy' 
+    where konum_id = 5;
+    
+    v_sayi := SQL%ROWCOUNT;
+
+    if sql%found then
+       dbms_output.put_line('Güncellenen Kayıt Sayısı: ' || v_sayi);
+    else
+       dbms_output.put_line('Kayıt Bulunamadı!!');
+    end if; 
+    
+end;
+
+--------------------------------------------
+--SQL Cursor Özellikleri (Implicit) - Dikkat
+--------------------------------------------
+
+declare
+    v_ps_ismi varchar2(70);
+begin
+
+    select ad||' '||soyad
+    into   v_ps_ismi
+    from personel
+    where personel_id = 6000;
+    
+    if sql%notfound then
+       dbms_output.put_line('Kayıt bulunamadı');
+    else 
+       dbms_output.put_line('Kayıt bulundu');
+    end if;    
+    
+end;
+
+-----------------------------------------------------
+--ALIŞTIRMALARIN CEVAPLARI
+-----------------------------------------------------
+
+--------------------------------------------
+--PL/SQL İçinde Verileri Değiştirme
+--------------------------------------------
+
+declare
+    v_max_id smallint;
+    v_new_id smallint;
+    v_brand varchar2(10) := 'Opel';
+    v_price smallint := 12000;
+    v_discount smallint;
+
+begin
+    
+    select max(id) into v_max_id from cars;
+    
+    insert into cars values(v_max_id + 1, v_brand, v_price, null)
+    returning id into v_new_id;
+    
+    v_discount := v_price * 0.05;
+    
+    update cars set discount = v_discount where id = v_new_id;
+    
+    dbms_output.put_line('ID: '|| v_new_id || ', Brand: ' || 
+        v_brand ||', Price: '  || v_price  || ', Discount: ' || v_discount);
+    
+    delete from cars where id = v_new_id;
+end;
+/
+
+--------------------------------------------
+--SQL Cursor Özellikleri
+--------------------------------------------
+
+begin
+    
+    update student set course_name = 'Accountancy and Finance'
+    where course_name = 'Economics';
+    
+    if sql%notfound then
+       dbms_output.put_line('Herhangi bir satır güncellenmedi, lütfen kontrol ediniz! ');
+    else
+       dbms_output.put_line('Güncellenen Kayıt Sayısı: '|| SQL%ROWCOUNT);
+    end if; 
+
+end;
+/

@@ -1,0 +1,403 @@
+--------------------------------------------
+--Implicit Cursors
+--------------------------------------------
+
+set serveroutput on;
+begin
+
+    update personel
+    set maas = 3000
+    where personel_id = 5010;
+
+    if sql%notfound then
+ 
+        dbms_output.put_line('Personel bulunamadı'); 
+
+    elsif sql%found then 
+
+        dbms_output.put_line('Güncellenen kayıt sayısı: ' || sql%rowcount);
+ 
+    end if; 
+       
+end;
+
+--------------------------------------------
+--Cursor’dan Data Getirme – Tek Satır
+--------------------------------------------
+
+declare
+    cursor c_personel is
+        select ad, maas from personel
+        where personel_id = 5020;
+    
+    v_ad personel.ad%type;
+    v_maas personel.maas%type;
+    
+begin
+
+    open c_personel;
+    fetch c_personel into v_ad, v_maas;
+
+    dbms_output.put_line(v_ad|| ': '||v_maas);
+     
+end;
+
+--------------------------------------------
+--Cursor’dan Data Getirme – Çok Satır
+--------------------------------------------
+
+declare
+    cursor c_personel is
+        select ad, maas from personel
+        where unvan = 'UZMAN';
+    
+    v_ad personel.ad%type;
+    v_maas personel.maas%type;
+    
+begin
+
+    open c_personel;
+    
+    loop
+        fetch c_personel into v_ad, v_maas;
+        exit when c_personel%notfound;
+        dbms_output.put_line(v_ad|| ': '||v_maas);
+    end loop;
+     
+end;
+
+--------------------------------------------
+--Cursor - Record Birlikte Kullanımı
+--------------------------------------------
+
+declare
+    cursor c_personel is
+        select ad, soyad, maas from personel
+        where unvan = 'UZMAN';
+    
+    v_per_record c_personel%rowtype;
+    
+begin
+
+    open c_personel;
+    
+    loop
+        fetch c_personel into v_per_record;
+        exit when c_personel%notfound;
+        
+        dbms_output.put_line(v_per_record.ad ||' '||
+                             v_per_record.soyad || ': '||
+                             v_per_record.maas);
+    end loop;
+    
+    close c_personel;
+end;
+
+--------------------------------------------
+--For Loop ile Cursor Kullanımı
+--------------------------------------------
+
+declare
+    cursor c_personel is
+        select ad, soyad, maas from personel
+        where unvan = 'UZMAN';
+     
+begin
+
+    for v_per_record in c_personel loop
+        
+        dbms_output.put_line(v_per_record.ad ||' '||
+                             v_per_record.soyad || ': '||
+                             v_per_record.maas);
+    end loop;
+     
+end;
+
+--------------------------------------------
+--For Loop ile Cursor Kullanımı – Alt sorgular
+--------------------------------------------
+
+begin
+    for v_row in (select * from konum) loop
+        
+        dbms_output.put_line(v_row.konum_id ||': '||
+                             v_row.konum_adi);
+        
+    end loop;
+end;
+
+--------------------------------------------
+
+begin
+    for v_row in 
+        (select personel_id, ad, soyad, maas
+         from personel where unvan = 'UZMAN') 
+    loop
+        
+        dbms_output.put_line(v_row.personel_id ||': '||
+                             v_row.ad ||' '|| v_row.soyad ||' '||
+                             v_row.maas);
+    end loop; 
+end;
+
+--------------------------------------------
+--Cursor Özellikleri
+--------------------------------------------
+
+declare
+    cursor c_personel is
+        select ad, soyad, maas from personel
+        where unvan = 'UZMAN';
+    
+    v_per_record c_personel%rowtype;
+    
+begin
+
+    if not c_personel%isopen then
+        open c_personel;
+    end if;    
+    
+    loop
+        fetch c_personel into v_per_record;
+        exit when c_personel%notfound or c_personel%rowcount > 12;
+        
+        dbms_output.put_line(c_personel%rowcount||': '||
+                             v_per_record.ad ||' '||
+                             v_per_record.soyad);
+         
+    end loop;
+end;
+
+--------------------------------------------
+--Cursor’e Parametre Verme
+--------------------------------------------
+
+declare
+    cursor c_personel (cv_unvan varchar2) is
+        select ad, soyad, maas from personel
+        where unvan = cv_unvan;  
+begin
+
+    dbms_output.put_line('.....UZMANLAR.....');
+
+    for v_per_record in c_personel('UZMAN') loop
+        
+        dbms_output.put_line(v_per_record.ad ||' '||
+                             v_per_record.soyad);
+        if c_personel%rowcount > 5 then exit; end if;
+        
+    end loop;
+
+    dbms_output.put_line('.....MÜDÜRLER.....');
+
+    for v_per_record in c_personel('MÜDÜR') loop
+        
+        dbms_output.put_line(v_per_record.ad ||' '||
+                             v_per_record.soyad);
+        if c_personel%rowcount > 5 then exit; end if;
+    end loop;     
+end;
+
+--------------------------------------------
+
+declare
+    cursor c_personel (cv_maas1 number, cv_maas2 number) is
+        select ad, maas from personel
+        where maas between cv_maas1 and cv_maas2;
+     
+begin
+
+    dbms_output.put_line('.....Düşük Maaşlar.....');
+
+    for v_per_record in c_personel(1000, 3000) loop
+        
+        dbms_output.put_line(v_per_record.ad ||': '||
+                             v_per_record.maas);
+        if c_personel%rowcount > 3 then exit; end if;
+        
+    end loop;
+
+    dbms_output.put_line('.....Yüksek Maaşlar.....');
+
+    for v_per_record in c_personel(3001, 10000) loop
+        
+        dbms_output.put_line(v_per_record.ad ||': '||
+                             v_per_record.maas);
+        if c_personel%rowcount > 3 then exit; end if;
+    end loop;     
+end;
+
+--------------------------------------------
+--Where Current Of İfadesi
+--------------------------------------------
+
+declare
+
+    cursor crs_personel(v_unvan varchar2) is
+        select personel_id, ad, soyad, maas
+        from personel
+        where unvan = v_unvan
+        for update;
+
+begin
+    for row_prs in crs_personel('UZMAN') loop
+        
+        update personel set maas = maas*1.25
+        where current of crs_personel;
+        
+    end loop;
+end;
+
+
+-----------------------------------------------------
+--ALIŞTIRMALARIN CEVAPLARI
+-----------------------------------------------------
+
+--------------------------------------------
+--Cursor’dan Data Getirme
+--------------------------------------------
+
+declare
+    cursor c_emp is
+        select 
+            title_of_courtesy || ' ' || 
+            first_name        || ' ' || 
+            last_name         || ' ' || 
+            birth_date as emp_info
+        from employees e;
+    
+    v_emp_info varchar(500);
+    
+begin
+
+    open c_emp;
+    
+    loop
+        fetch c_emp into v_emp_info;
+        exit when c_emp%notfound;
+        
+        dbms_output.put_line(v_emp_info);
+        
+    end loop;
+     
+end;
+
+--------------------------------------------
+--Cursor - Record Birlikte Kullanımı
+--------------------------------------------
+
+DECLARE
+    CURSOR c_cars IS
+    SELECT
+        brand, price, nvl(discount, 0) AS discount,
+        price - nvl(discount, 0) AS net_price
+    FROM cars;
+
+    v_car_record   c_cars%rowtype;
+    v_sum_price    NUMBER := 0;
+    v_sum_discount NUMBER := 0;
+BEGIN
+    OPEN c_cars;
+    LOOP
+        FETCH c_cars INTO v_car_record;
+        EXIT WHEN c_cars%notfound;
+        
+        v_sum_price := v_sum_price + v_car_record.price;
+        v_sum_discount := v_sum_discount + v_car_record.discount;
+        
+        dbms_output.put_line(v_car_record.brand
+                             || ', Price: '
+                             || v_car_record.price
+                             || ', Discount: '
+                             || v_car_record.discount
+                             || ', Net Price: '
+                             || v_car_record.net_price);
+
+    END LOOP;
+
+    CLOSE c_cars;
+    dbms_output.put_line('Sum price is: ' || v_sum_price);
+    dbms_output.put_line('Sum discount is: ' || v_sum_discount);
+    
+END;
+
+--------------------------------------------
+--For Loop ile Cursor Kullanımı
+--------------------------------------------
+--Yöntem-1
+
+declare
+    cursor c_product is
+        select segment as segment_name, 
+            count(*) product_count,
+            sum(price) sum_price
+        from product p, product_segment ps
+        where p.segment_id = ps.id
+        group by segment;
+     
+begin
+
+    for v_product in c_product loop
+        
+        dbms_output.put_line(
+            v_product.segment_name ||': Count: '||
+            v_product.product_count || ', Sum Price: '||
+            v_product.sum_price);
+    end loop;
+     
+end;
+
+--Yöntem-2
+
+begin
+
+    for v_product in 
+        (   select segment as segment_name, 
+                count(*) product_count,
+                sum(price) sum_price
+            from product p, product_segment ps
+            where p.segment_id = ps.id
+            group by segment
+        ) 
+    loop
+        
+        dbms_output.put_line(
+            v_product.segment_name ||': Count: '||
+            v_product.product_count || ', Sum Price: '||
+            v_product.sum_price);
+    end loop;
+     
+end;
+
+--------------------------------------------
+--Cursor’e Parametre Verme
+--------------------------------------------
+
+declare
+    cursor c_student (cv_course_name varchar2) is
+        select name, gender from student
+        where course_name = cv_course_name;  
+begin
+
+    dbms_output.put_line('------Computer Engineer------');
+
+    for v_stud_record in c_student('Computer Engineer') loop
+        
+        dbms_output.put_line(v_stud_record.name ||', Gender: '||
+                             v_stud_record.gender);
+        if c_student%rowcount > 2 then exit; end if;
+        
+    end loop;
+
+    dbms_output.put_line('');
+    dbms_output.put_line('------Computer Science-----');
+
+    for v_stud_record in c_student('Computer Science') loop
+        
+        dbms_output.put_line(v_stud_record.name ||', Gender: '||
+                             v_stud_record.gender);
+        if c_student%rowcount > 2 then exit; end if;
+        
+    end loop;
+    
+end;

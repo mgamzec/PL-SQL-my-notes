@@ -1,0 +1,25 @@
+--------------------------------------------
+--Output Log Yazdırma
+--------------------------------------------
+
+set serveroutput on
+begin
+
+  dbms_output.put_line('Hello World'); 
+  
+end;
+
+--------------------------------------------
+
+set serveroutput on
+declare
+    p_maas number;
+    
+begin
+    
+    select maas into p_maas from personel
+    where personel_id = 5006;
+    
+    dbms_output.put_line(p_maas);
+    
+end;

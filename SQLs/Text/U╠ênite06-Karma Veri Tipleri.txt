@@ -1,0 +1,730 @@
+--------------------------------------------
+--PL/SQL Records
+--------------------------------------------
+
+declare
+    type type_perso is record
+        (
+            v_adi varchar2(30),
+            v_soyadi personel.soyad%type,
+            v_maas number,
+            v_izin_gunu pls_integer
+        );
+    
+    v_personel type_perso;
+      
+begin
+    v_personel.v_adi := ‘Ekrem';
+    v_personel.v_soyadi := 'Tiryaki';
+    v_personel.v_maas := 2000;
+    v_personel.v_izin_gunu := 25;
+    
+    dbms_output.put_line('Adı: '||v_personel.v_adi); 
+    dbms_output.put_line('Soyadı: '||v_personel.v_soyadi); 
+    dbms_output.put_line('Maaşı: '||v_personel.v_maas); 
+    dbms_output.put_line('İzin Günü: '||v_personel.v_izin_gunu); 
+end;
+
+--------------------------------------------
+
+declare
+    type type_perso is record
+        (
+            ad        personel.ad%type,
+            soyad     personel.soyad%type,
+            maas      personel.maas%type,
+            giris     personel.giris_tarihi%type
+        );
+    
+    v_personel type_perso;
+      
+begin
+
+    select ad, soyad, maas, giris_tarihi into v_personel
+    from personel where personel_id = 5010;        
+
+    dbms_output.put_line('Adı: '|| v_personel.ad); 
+    dbms_output.put_line('Soyadı: '|| v_personel.soyad); 
+    dbms_output.put_line('Maaşı: '|| v_personel.maas); 
+    dbms_output.put_line('İzin Günü: '|| v_personel.giris); 
+end;
+
+--------------------------------------------
+
+declare 
+   type kitap_type is record 
+      (
+        baslik varchar(50), 
+        yazar varchar(50), 
+        kitap_id number
+      ); 
+   kitap1 kitap_type; 
+   kitap2 kitap_type; 
+begin 
+
+   kitap1.baslik  := 'PL/SQL Programming'; 
+   kitap1.yazar := 'Tuncay Tiryaki';  
+   kitap1.kitap_id := 123456;  
+
+   kitap2.baslik := 'SQL Tunning'; 
+   kitap2.yazar := 'Sinem Bulut'; 
+   kitap2.kitap_id := 659847;  
+  
+   dbms_output.put_line('Kitap 1 baslik : '|| kitap1.baslik); 
+   dbms_output.put_line('Kitap 1 yazar : '|| kitap1.yazar); 
+   dbms_output.put_line('Kitap 1 kitap_id : ' || kitap1.kitap_id); 
+   
+   dbms_output.put_line('Kitap 2 baslik : '|| kitap2.baslik); 
+   dbms_output.put_line('Kitap 2 yazar : '|| kitap2.yazar); 
+   dbms_output.put_line('Kitap 2 kitap_id : '|| kitap2.kitap_id); 
+end; 
+
+--------------------------------------------
+--PL/SQL Nested Records
+--------------------------------------------
+
+declare
+  type adres_type is record 
+  (
+    ilce varchar2(255),
+    sehir varchar2(100),
+    ulke varchar2(100)
+  );
+  type musteri_type is record
+  (
+      musteri_ismi varchar2(100),
+      teslim_adresi adres_type,
+      fat_adresi adres_type
+  );
+  v_musteri musteri_type;
+begin
+
+  v_musteri.musteri_ismi := 'Faruk Keskin';
+  v_musteri.teslim_adresi.ilce := 'Yenimahalle';
+  v_musteri.teslim_adresi.sehir := 'Ankara';
+  v_musteri.teslim_adresi.ulke := 'Türkiye';
+  -- Fatura adresi ve teslim adresi aynı ise
+  v_musteri.fat_adresi := v_musteri.teslim_adresi;
+end;
+
+--------------------------------------------
+--%ROWTYPE Özelliği
+--------------------------------------------
+
+declare
+    v_perso personel%rowtype;
+
+begin
+    select * into v_perso from personel
+    where personel_id = 5060;
+    
+    dbms_output.put_line(v_perso.ad    || ' '  || 
+		        v_perso.soyad || ', ' ||
+		        v_perso.unvan); 
+end;
+
+--------------------------------------------
+--%ROWTYPE Özelliği - Select
+--------------------------------------------
+
+declare
+    type kisi_type is record
+    (
+        ad_soyad      varchar2(100),
+        toplam_gelir  number default 500,
+        per_satir     personel%rowtype
+    );
+    
+    v_calisan kisi_type;
+
+begin
+    select * into v_calisan.per_satir from personel
+    where personel_id = 5020;
+    
+    v_calisan.ad_soyad := v_calisan.per_satir.ad || ' ' 
+	|| v_calisan.per_satir.soyad;
+
+    v_calisan.toplam_gelir := v_calisan.per_satir.prim + 
+	v_calisan.per_satir.maas;
+    
+    dbms_output.put_line(v_calisan.ad_soyad || ', ' 
+	|| v_calisan.toplam_gelir); 
+end;
+
+--------------------------------------------
+--%ROWTYPE Özelliği - Insert
+--------------------------------------------
+
+create table personel_ayrilan as
+select personel_id, ad, soyad, dept_id, cikis_tarihi
+from personel where 1=0;
+
+declare
+    v_per_ayr personel_ayrilan%rowtype;
+begin
+
+    select personel_id, ad, soyad, 
+           dept_id, cikis_tarihi into v_per_ayr
+    from personel where personel_id = 5020;
+    
+    insert into personel_ayrilan values v_per_ayr;
+    commit;
+
+end;
+
+--------------------------------------------
+--%ROWTYPE Özelliği - Update
+--------------------------------------------
+
+declare
+    v_per_ayr personel_ayrilan%rowtype;
+begin
+
+    select * into v_per_ayr
+    from personel_ayrilan where personel_id = 5020;
+    
+    v_per_ayr.cikis_tarihi := sysdate;
+    
+    update personel_ayrilan set ROW = v_per_ayr 
+    where personel_id = 5020;
+    
+    commit;
+
+end;
+
+--------------------------------------------
+--Associative Arrays
+--------------------------------------------
+
+SET SERVEROUTPUT ON
+DECLARE
+  TYPE ulke IS TABLE OF VARCHAR2(50)
+    INDEX BY VARCHAR2(5);
+
+  t_ulkeler ulke;
+BEGIN
+
+  t_ulkeler('TR') := 'Türkiye';
+  t_ulkeler('UK') := 'United Kingdom';
+  t_ulkeler('FR') := 'France';
+  t_ulkeler('DE') := 'Germany';
+  
+  DBMS_OUTPUT.PUT_LINE('ISO kod "TR" = ' || t_ulkeler('TR'));
+  DBMS_OUTPUT.PUT_LINE('ISO kod "DE" = ' || t_ulkeler('DE'));
+
+END;
+
+--------------------------------------------
+
+set serveroutput on;
+declare
+
+    type il_bilgi is table of varchar2(50)
+        index by pls_integer;
+    
+    v_iller il_bilgi;
+    c_ys varchar2(6) := chr(13)||chr(10); --Yeni satır
+    
+begin
+
+    v_iller(6)  := 'ANKARA';
+    v_iller(16) := 'BURSA';
+    v_iller(46) := 'KAHRAMANMARAŞ';
+    
+    dbms_output.put_line(v_iller(6) ||c_ys||
+                         v_iller(16)||c_ys||
+                         v_iller(46));
+
+end;
+
+--------------------------------------------
+--Associative Arrays - %ROWTYPE
+--------------------------------------------
+
+set serveroutput on
+declare
+    type dep_table is table of departman%rowtype
+        index by varchar2(5);
+
+    t_dept dep_table;
+begin
+
+    select * into t_dept(1) from departman 
+    where dept_id = 100;
+
+    dbms_output.put_line('Dep ID : ' || t_dept(1).dept_id
+        || ', Dep İsmi : ' || 
+        t_dept(1).dept_ismi);
+
+end;
+
+--------------------------------------------
+
+declare
+    type dep_table is table of departman%rowtype
+        index by varchar2(5);
+
+    t_dept dep_table;
+begin
+
+    for i in 1..10 loop
+        select * into t_dept(i) from departman 
+        where dept_id = 100+i;
+    end loop;
+    
+    for i in 1..10 loop
+        dbms_output.put_line('Dep ID : ' || t_dept(i).dept_id
+            || ', Dep İsmi : ' || 
+            t_dept(i).dept_ismi);
+    end loop;
+end;
+
+--------------------------------------------
+--Associative Arrays - Records
+--------------------------------------------
+
+declare
+    type per_bilgi_type is record
+    (
+        id pls_integer,
+        isim varchar2(30),
+        maas number 
+    );
+    
+    type personeller_type is table of per_bilgi_type
+        index by pls_integer;
+    
+    v_perss personeller_type;
+begin
+    
+    v_perss(1).id := 10;
+    v_perss(1).isim := 'Ayşe';
+    v_perss(1).maas := 5000;
+    
+    v_perss(2).id := 11;
+    v_perss(2).isim := 'Mehmet';
+    v_perss(2).maas := 7000;
+    
+    dbms_output.put_line(v_perss(1).id ||'-'||v_perss(1).isim||'-'||v_perss(1).maas);
+    dbms_output.put_line(v_perss(2).id ||'-'||v_perss(2).isim||'-'||v_perss(2).maas);
+end;
+
+--------------------------------------------
+--Collection Metodları
+--------------------------------------------
+
+declare
+  type ulke is table of varchar2(30)
+    index by varchar2(2);
+
+  t_ulkeler ulke;
+begin
+
+  t_ulkeler('TR') := 'Türkiye';
+  t_ulkeler('UK') := 'United Kingdom';
+  t_ulkeler('FR') := 'France';
+  t_ulkeler('DE') := 'Germany';
+  t_ulkeler('US') := 'Amerika';
+  t_ulkeler('AU') := 'Avustralya';
+  
+  dbms_output.put_line(t_ulkeler.first);
+  dbms_output.put_line(t_ulkeler.last);
+  dbms_output.put_line(t_ulkeler.count);
+  dbms_output.put_line(t_ulkeler.prior('TR'));
+  dbms_output.put_line(t_ulkeler.next('UK'));
+  
+  t_ulkeler.delete('FR');
+  dbms_output.put_line(t_ulkeler.count);
+  
+  if not t_ulkeler.exists('FR') then
+    dbms_output.put_line('FR silinmiş'); 
+  end if;
+
+end;
+
+--------------------------------------------
+--Associative Arrays - LOOP
+--------------------------------------------
+
+declare
+    type ulke is table of varchar2(30)
+        index by varchar2(2);
+
+    t_ulkeler ulke;
+    v_index varchar2(2);
+  
+begin
+
+    t_ulkeler('TR') := 'Türkiye';
+    t_ulkeler('UK') := 'United Kingdom';
+    t_ulkeler('FR') := 'France';
+    t_ulkeler('DE') := 'Germany';
+    t_ulkeler('US') := 'Amerika';
+    t_ulkeler('AU') := 'Avustralya';
+  
+    v_index := t_ulkeler.first;
+    
+    while v_index is not null loop
+        
+        dbms_output.put_line(v_index || ': '|| t_ulkeler(v_index));
+        v_index := t_ulkeler.next(v_index);
+         
+    end loop;
+  
+end;
+
+--------------------------------------------
+--Nested Tables
+--------------------------------------------
+
+declare
+    type isim_type is table of varchar2(30);
+    
+    v_isimler isim_type;
+begin
+    
+    v_isimler := isim_type('Habibe', 'Ayşen', 'Esra');
+    
+    v_isimler.extend;
+    v_isimler(v_isimler.count) := 'Yasemin';
+
+    for i in v_isimler.first..v_isimler.last loop
+
+        dbms_output.put_line(v_isimler(i));
+
+    end loop;
+    
+end;
+
+--------------------------------------------
+
+declare 
+   type isim_type is table of varchar2(10); 
+   type derece_type is table of integer;  
+   
+   isimler isim_type; 
+   dereceler derece_type; 
+   toplam integer; 
+begin 
+   
+   isimler := isim_type('Sinem', 'Kadir', 'Kemal', 'Fatma', 'Şener'); 
+   dereceler:= derece_type(98, 97, 78, 87, 92); 
+   toplam := isimler.count; 
+   
+   dbms_output.put_line('Toplam öğrenci sayısı: '|| toplam); 
+   
+   for i in 1 .. toplam loop
+    
+      dbms_output.put_line('Öğrenci: '||isimler(i)||', Derece: ' || dereceler(i)); 
+   
+   end loop; 
+   
+end;
+
+--------------------------------------------
+--Varrays
+--------------------------------------------
+
+set serveroutput on;
+declare
+    type t_name_type is varray(2) 
+        of varchar2(20) not null;
+    
+    t_names t_name_type  := t_name_type('Sabri','Sinem');
+    t_snames t_name_type := t_name_type();
+
+Begin
+
+    dbms_output.put_line('İsimler Sayısı: ' || t_names.count);
+    dbms_output.put_line('Soyisimler Sayısı: ' || t_snames.count);
+    
+    dbms_output.put_line(t_names(1));
+    dbms_output.put_line(t_names(2));
+   
+end;
+
+--------------------------------------------
+
+set serveroutput on;
+declare
+    type t_name_type is varray(2) 
+        of varchar2(20) not null;
+    t_names t_name_type  := t_name_type('Sabri','Sinem');
+    t_snames t_name_type := t_name_type();
+begin
+    dbms_output.put_line('İsimler Sayısı: ' || t_names.count);
+    dbms_output.put_line('Soyisimler Sayısı: ' || t_snames.count);
+    
+    dbms_output.put_line(t_names(1));
+    dbms_output.put_line(t_names(2));
+    
+    --t_snames(1) := 'Kurt'; Hata verir
+    t_snames.extend; --Bir element ekliyoruz
+    t_snames(1) := 'Kurt';
+ 
+    t_snames.extend; 
+    t_snames(2) := 'Kedi';
+   
+    dbms_output.put_line(t_snames(1));
+    dbms_output.put_line(t_snames(2));
+   
+end;
+
+--------------------------------------------
+
+declare
+    type ay_type is varray(12) 
+        of varchar2(20) not null;
+    
+    type gun_type is varray(7) 
+        of varchar2(20) not null;
+    
+    v_aylar ay_type  := ay_type('Ocak','Şubat', 'Mart', 'Nisan', 'Mayıs',
+        'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık');
+        
+    v_gunler gun_type := gun_type('Pazartesi', 'Salı', 'Çarşamba', 
+        'Perşembe', 'Cuma', 'Cumartesi', 'Pazar');
+    
+    v_ay_no simple_integer := 5;
+    v_gun_no simple_integer := 2;
+
+Begin
+
+    dbms_output.put_line(v_aylar(v_ay_no));
+    dbms_output.put_line(v_gunler(v_gun_no));
+   
+end;
+
+
+-----------------------------------------------------
+--ALIŞTIRMALARIN CEVAPLARI
+-----------------------------------------------------
+
+--------------------------------------------
+--PL/SQL Records
+--------------------------------------------
+
+declare
+    type type_order_info is record
+        (
+            first_name    employees.first_name%type,
+            last_name     employees.last_name%type,
+            order_count   number,
+            order_sum     number
+        );
+    
+    v_order_info type_order_info;
+      
+begin
+
+    select e.first_name, e.last_name, 
+        count(*) order_count,
+        sum(freight) order_sum
+        into v_order_info
+    from employees e, orders o
+    where e.employee_id = 3
+        and o.employee_id = e.employee_id
+    group by e.first_name, e.last_name;       
+
+    dbms_output.put_line('First name: '|| v_order_info.first_name); 
+    dbms_output.put_line('Last name: '|| v_order_info.last_name); 
+    dbms_output.put_line('Order count: '|| v_order_info.order_count); 
+    dbms_output.put_line('Order sum: '|| v_order_info.order_sum); 
+end;
+
+--------------------------------------------
+--%ROWTYPE Özelliği
+--------------------------------------------
+
+declare
+    rt_product products%rowtype;
+    rt_category categories%rowtype;
+    rt_supplier suppliers%rowtype;
+
+begin
+    
+    select * into rt_product from products 
+    where product_id = 1;
+    
+    select * into rt_category from categories 
+    where category_id = rt_product.category_id;
+    
+    select * into rt_supplier from suppliers 
+    where supplier_id = rt_product.supplier_id;
+
+    dbms_output.put_line('Product Name: ' || rt_product.product_name);
+    dbms_output.put_line('Product Unit Price: ' || rt_product.unit_price);
+    dbms_output.put_line('Category Name: ' || rt_category.category_name);
+    dbms_output.put_line('Supplier Name: ' || rt_supplier.company_name);
+    dbms_output.put_line('Supplier City: ' || rt_supplier.city);
+
+end;
+
+--------------------------------------------
+--Associative Arrays
+--------------------------------------------
+
+declare
+    type cars_type is record
+    (
+        brand varchar2(30),
+        price number,
+        discount number
+    );
+    
+    type cars_table_type is table of cars_type
+        index by pls_integer; 
+        
+    v_cars_info cars_table_type;
+    v_cars_count pls_integer;
+begin
+
+    select count(*) into v_cars_count from cars;
+    
+    for i in 1..v_cars_count loop
+        select brand, price, discount 
+        into v_cars_info(i) from cars 
+        where id = i;
+    end loop;
+    
+    for i in 1..v_cars_count loop
+        dbms_output.put_line('Brand : ' || v_cars_info(i).brand
+            || ', Price : ' || v_cars_info(i).price
+            || ', Discount : ' || nvl(v_cars_info(i).discount,0));
+    end loop;
+end;
+
+--------------------------------------------
+--Associative Arrays Loop
+--------------------------------------------
+
+declare
+    type student_type is table of varchar2(50)
+        index by varchar2(50);
+
+    v_students student_type;
+    v_students_count pls_integer;
+    v_engineers_count pls_integer := 0;
+    
+    v_key varchar2(50);
+    
+    v_name varchar2(50);
+    v_course_name varchar2(50);
+  
+begin
+    
+    select count(*) 
+    into v_students_count 
+    from student;
+    
+    for i in 1..v_students_count loop
+        
+        select name, course_name 
+        into v_name, v_course_name from student 
+        where id = i;
+        
+        v_students(v_name) := v_course_name;
+        
+    end loop;
+
+    v_key := v_students.first;
+    
+    while v_key is not null loop
+        
+        if (lower(v_students(v_key)) like '%engineer%') then
+            dbms_output.put_line(v_key || ': '|| v_students(v_key));
+            v_engineers_count := v_engineers_count + 1;
+        end if;
+        
+        v_key := v_students.next(v_key);
+        
+    end loop;
+    
+    dbms_output.put_line('----------------------------------');
+    dbms_output.put_line('All students count: ' || v_students.count);
+    dbms_output.put_line('Engineer students count: ' || v_engineers_count);
+
+end;
+
+
+--------------------------------------------
+--Nested Tables
+--------------------------------------------
+
+declare 
+   type ay_isim_type is table of varchar2(10); 
+   type ay_gun_type is table of integer;  
+   
+   ay_isimleri ay_isim_type; 
+   ay_gunleri ay_gun_type; 
+begin 
+   
+    ay_isimleri := ay_isim_type('Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 
+        'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim'); 
+    
+    ay_gunleri := ay_gun_type(31, 28, 31, 30, 31, 30, 31, 31, 30, 31);
+    
+    ay_isimleri.extend(2);
+    ay_isimleri(ay_isimleri.count-1) := 'Kasım';
+    ay_isimleri(ay_isimleri.count) := 'Aralık';
+    
+    ay_gunleri.extend;
+    ay_gunleri(ay_gunleri.count) := 30;
+    
+    ay_gunleri.extend;
+    ay_gunleri(ay_gunleri.last) := 31;
+    
+    for i in ay_isimleri.first..ay_isimleri.last loop
+    
+        dbms_output.put_line(ay_isimleri(i)||' ayı gün sayısı: ' || ay_gunleri(i)); 
+   
+    end loop; 
+   
+end;
+
+--------------------------------------------
+--Varrays
+--------------------------------------------
+
+declare
+    type customer_info_type is record
+    (
+        customer_id customers.customer_id%type,
+        company_name customers.company_name%type,
+        city customers.city%type
+    ); 
+    v_customer_info customer_info_type;
+    
+    type customers_type is varray(5) 
+        of customer_info_type;
+    
+    v_customers customers_type := customers_type();
+
+    type t_customerid_type is varray(3) of varchar2(20);
+    v_customer_ids t_customerid_type  := t_customerid_type('BERGS','CACTU','TOMSP');
+
+begin
+
+    for i in v_customer_ids.first..v_customer_ids.last loop
+        
+        select customer_id, company_name, city into v_customer_info
+        from customers
+        where customer_id = v_customer_ids(i);
+        
+        v_customers.extend;
+        v_customers(v_customers.last).customer_id := v_customer_info.customer_id;
+        v_customers(v_customers.last).company_name := v_customer_info.company_name;
+        v_customers(v_customers.last).city := v_customer_info.city;
+
+    end loop;
+
+    -- show all customers
+    for j in v_customers.first..v_customers.last loop
+        dbms_output.put_line(
+            'Customer id: ' || v_customers(j).customer_id ||
+            ', Comapny name: ' || v_customers(j).company_name ||
+            ', City: ' || v_customers(j).city
+        );
+    end loop;
+
+end;

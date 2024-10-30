@@ -1,0 +1,672 @@
+--------------------------------------------
+--IF-ELSE İfadesinin Kullanımı
+--------------------------------------------
+
+declare
+    maas number := 3500;
+begin
+    if maas < 5000 then
+        dbms_output.put_line('Düşük maaş');
+    end if;
+end;
+
+--------------------------------------------
+
+declare
+    maas number := 6000;
+begin
+
+    if maas < 5000 then
+        dbms_output.put_line('Düşük Maaş');
+    else
+        dbms_output.put_line('Yüksek Maaş'); 
+    end if;
+    
+end;
+
+--------------------------------------------
+--IF-ELSIF İfadesinin Kullanımı
+--------------------------------------------
+
+declare
+    maas number := 6000;
+begin
+
+    if maas < 5000 then
+    
+        dbms_output.put_line('Düşük Maaş');
+    
+    elsif maas between 5000 and 10000 then
+    
+        dbms_output.put_line('Orta Maaş');
+    
+    else 
+        dbms_output.put_line('Yüksek Maaş'); 
+        
+    end if;
+    
+end;
+
+--------------------------------------------
+--IF-ELSE İfadesinde NULL
+--------------------------------------------
+
+declare
+    maas number;
+
+begin
+
+    if maas < 5000 then
+        dbms_output.put_line('Düşük Maaş');
+    else
+        dbms_output.put_line('Yüksek Maaş'); 
+    end if;
+    
+end;
+
+--------------------------------------------
+--CASE İfadesi
+--------------------------------------------
+
+declare
+    v_derece number := &derece;
+    v_hava_durumu varchar2(50);
+     
+begin
+
+    v_hava_durumu :=
+        case
+            when v_derece < 0               then 'Çok soğuk'
+            when v_derece between 0 and 15  then 'Soğuk'
+            when v_derece between 16 and 26 then 'Ilık'
+            when v_derece > 26              then 'Sıcak'
+        end;
+    
+    dbms_output.put_line('Sıcaklık: ' ||v_derece || ' derece,  
+      Hava Durumu: '||v_hava_durumu); 
+
+end;
+
+--------------------------------------------
+
+declare
+    v_mevsim varchar2(20) := 'Sonbahar';
+    v_hava_durumu varchar2(60);
+     
+begin
+
+    v_hava_durumu :=
+        case v_mevsim
+            when 'İlkbahar' then 'Bitkiler yeniden canlanır, sıcaklık: 15-25'
+            when 'Yaz'      then 'İşte tatil zamanı, sıcaklık: 25-35'
+            when 'Sonbahar' then 'Doğadaki renk cümbüşü inanılmazdır, sıcaklık: 10-20'
+            when 'Kış'      then 'Beyaz, soğuk ama çok güzeldir, sıcaklık: -25-10'
+            else 'Bu bir mevsim değil!'
+        end;
+    
+    dbms_output.put_line(v_mevsim||' - '||v_hava_durumu); 
+
+end;
+
+--------------------------------------------
+
+declare
+    v_not   char(1);
+    v_sonuc varchar2(20);
+begin
+
+    v_not := 'B';
+
+    case v_not
+        when 'A' then v_sonuc := 'Mükemmel' ;
+        when 'B' then v_sonuc := 'Çok İyi' ;
+        when 'C' then v_sonuc := 'İyi' ;
+        when 'D' then v_sonuc := 'Yetersiz' ;
+        when 'F' then v_sonuc := 'Zayıf' ;
+    else
+        v_sonuc := 'Böyle bir not yok' ;
+    end case;
+
+    dbms_output.put_line( v_sonuc );
+end;
+
+--------------------------------------------
+
+declare
+    v_satis_degeri  number;
+    v_komisyon      number;
+begin
+
+    v_satis_degeri := 150000;
+    case
+        when v_satis_degeri > 200000 then 
+             v_komisyon := 0.2;
+        when v_satis_degeri >= 100000 and v_satis_degeri < 200000 then
+             v_komisyon := 0.15;
+        when v_satis_degeri >= 50000  and v_satis_degeri < 100000 then
+             v_komisyon := 0.1;
+        when v_satis_degeri > 30000 then
+             v_komisyon := 0.05;
+        else
+            v_komisyon := 0;
+    end case;
+
+    dbms_output.put_line( 'Komisyon değeri: %' || v_komisyon * 100);
+end;
+
+--------------------------------------------
+--NULL Değeri İle Çalışma
+--------------------------------------------
+
+declare
+    v_sayi1 number;
+    v_sayi2 number;
+    v_sayi3 number := 70;
+     
+begin
+
+    v_sayi1 := 100;
+    if v_sayi1 > v_sayi2 then
+        dbms_output.put_line('Kontrol-1');
+    end if;
+
+    v_sayi2 := 80;
+    if v_sayi1 > v_sayi2 then
+        dbms_output.put_line('Kontrol-2');
+    end if;
+    
+    if (v_sayi1 > v_sayi2) and (v_sayi1 > v_sayi3) then
+        dbms_output.put_line('Kontrol-3');
+    end if;
+end;
+
+--------------------------------------------
+--Basic Döngüler
+--------------------------------------------
+
+set serveroutput on;
+declare
+    v_sayac    pls_integer := 0;
+    
+begin
+
+    loop
+
+        v_sayac := v_sayac + 1;
+        dbms_output.put_line(v_sayac || '.sayı');
+
+        exit when v_sayac = 10;
+
+    end loop;
+
+end;
+
+--------------------------------------------
+
+set serveroutput on;
+declare
+    v_sayac pls_integer := 0;
+    v_ps_id pls_integer;
+    v_ad    varchar2(50);
+    v_soyad varchar2(40);
+    
+begin
+    loop
+        v_sayac := v_sayac + 1;
+        
+        v_ps_id := dbms_random.value(5000, 5020);
+        
+        select ad, soyad into v_ad, v_soyad 
+        from personel where personel_id = v_ps_id;
+        
+        dbms_output.put_line(v_ps_id || ': ' || v_ad || ' '|| v_soyad);
+        
+        exit when v_sayac = 10;
+    end loop;
+end;
+
+--------------------------------------------
+--While Döngüler
+--------------------------------------------
+
+set serveroutput on;
+declare
+    v_sayac    pls_integer := 0;
+    
+begin
+
+    while v_sayac < 10 loop
+
+        v_sayac := v_sayac + 1;
+        dbms_output.put_line(v_sayac || '.sayı');
+
+    end loop;
+
+end;
+
+--------------------------------------------
+
+declare
+    v_grupsayisi  number := 0;
+    v_deger number := 10000;
+    v_limit integer := 23; 
+    islemtamam boolean := false;
+begin
+
+    dbms_output.put_line('Değer:'|| v_deger); 
+    while islemtamam = false loop
+        
+        v_grupsayisi := v_grupsayisi + 1;
+        
+        if v_deger <= v_limit then
+            islemtamam := true;
+        else
+            v_deger := v_deger - v_limit;
+        end if;
+        
+    end loop;
+    dbms_output.put_line('Limit:'|| v_limit); 
+    dbms_output.put_line('Grup Sayısı: '|| v_grupsayisi); 
+end;
+
+--------------------------------------------
+--FOR Döngüler
+--------------------------------------------
+
+begin
+
+    for i in 1..10 loop
+
+        dbms_output.put_line(i || '.sayı');
+
+    end loop;
+
+end;
+
+--------------------------------------------
+
+declare
+    v_str varchar2(40) := 'PL/SQL-Eğitimi-Nasıl-Gidiyor?'; 
+begin
+
+    for i in reverse 1..length(v_str) loop
+
+        dbms_output.put_line(substr(v_str, i, 1)); 
+
+    end loop;
+    
+end;
+
+--------------------------------------------
+
+declare
+    v_min_id departman.dept_id%type;
+    v_dep_ismi departman.dept_ismi%type;
+    
+begin
+
+    select min(dept_id) into v_min_id from departman;
+    
+    for i in 1..10 loop
+
+        select dept_ismi into v_dep_ismi from departman
+        where dept_id = v_min_id + i;
+        
+        dbms_output.put_line(v_min_id + i || ': ' || v_dep_ismi);
+    
+    end loop;
+
+end; 
+
+--------------------------------------------
+--Döngüleri Karşılaştırma
+--------------------------------------------
+
+    loop
+
+        v_sayac := v_sayac + 1;
+        dbms_output.put_line(v_sayac || '.sayı’);
+
+        exit when v_sayac = 10;
+
+    end loop;
+
+--------------------------------------------
+
+    while v_sayac < 10 loop
+
+        v_sayac := v_sayac + 1;
+        dbms_output.put_line(v_sayac || '.sayı');
+
+    end loop;
+
+--------------------------------------------
+
+begin
+
+    for i in 1..10 loop
+
+        dbms_output.put_line(i || '.sayı');
+
+    end loop;
+
+end;
+
+--------------------------------------------
+--İç İçe Döngüler
+--------------------------------------------
+
+declare
+    i   pls_integer := 0;
+    j   pls_integer := 0;
+begin
+
+    loop
+        j := 1;
+        i := i + 1;
+        
+        loop
+            dbms_output.put_line(i || ' * ' || j || ' = '  || i*j);
+            j := j + 1;
+            exit when j = 4;
+        end loop;
+
+        exit when i = 4;
+    end loop;
+end;
+
+--------------------------------------------
+
+declare 
+   i number := 2; 
+   j number;
+    
+begin 
+    loop 
+        j:= 2; 
+        loop 
+            exit when ((mod(i, j) = 0) or (j = i)); 
+            j := j +1; 
+        end loop;
+         
+        if (j = i) then 
+            dbms_output.put_line(i || ' : asal sayıdır'); 
+        end if; 
+        
+        i := i + 1; 
+        exit when i = 50; 
+    end loop; 
+end; 
+
+--------------------------------------------
+
+begin
+    <<dis_dongu>>
+    for v_dis_sayac in 1..2 loop
+
+        <<ic_dongu>>
+        for v_ic_sayac in 1..4 loop
+            
+            dbms_output.put_line('Dış döngü: ' || v_dis_sayac || ', İç döngü: ' || v_ic_sayac);
+            exit dis_dongu when v_ic_sayac = 3;
+
+        end loop ic_dongu;
+    
+    end loop dis_dongu;
+end;
+
+--------------------------------------------
+--Continue İfadesi
+--------------------------------------------
+
+declare
+    a integer := 0;
+begin
+    
+    while a < 20 loop
+        
+        a := a + 1;
+        
+        if mod(a,5) = 0 then
+           continue;
+        end if;
+
+        dbms_output.put_line('a: '|| a);
+         
+    end loop;
+end; 
+
+--------------------------------------------
+
+begin
+
+    for sayac in 1 .. 20 loop
+
+        if mod( sayac, 2 ) = 1 then
+            -- tek sayıları atla
+            continue;
+        end if;
+
+        dbms_output.put_line(sayac);
+    end loop;
+
+end;
+
+--------------------------------------------
+--Continue When İfadesi
+--------------------------------------------
+
+begin
+
+    for sayac in 1 .. 20 loop
+
+        continue when mod( sayac, 2 ) = 0;
+
+        dbms_output.put_line(sayac);
+
+    end loop;
+  
+end;
+
+--------------------------------------------
+--Continue Label İfadesi
+--------------------------------------------
+
+declare
+    v_toplam number := 0;
+begin
+    <<dis_loop>>
+    for sayac1 in 1 .. 5 loop
+
+        v_toplam := v_toplam + 1;
+        dbms_output.put_line('Dış döngü: ' || v_toplam);
+        
+        for sayac2 in 1..5 loop
+        
+            v_toplam := v_toplam + 1;
+            dbms_output.put_line('İç döngü: ' || v_toplam);
+
+            continue dis_loop when mod(v_toplam, 2) = 0;
+        
+        end loop;
+    
+    end loop dis_loop;
+end;
+
+-----------------------------------------------------
+--ALIŞTIRMALARIN CEVAPLARI
+-----------------------------------------------------
+
+--------------------------------------------
+--CASE İfadesi
+--------------------------------------------
+
+declare
+    v_id smallint := 2;
+    v_tax smallint;
+    v_price smallint;
+    v_brand varchar2(50);
+     
+begin
+
+    select brand, price into v_brand, v_price 
+    from cars where id = v_id;
+    
+    v_tax :=
+        case
+            when v_price between 5000 and 10000   then v_price * 0.1
+            when v_price between 10001 and 100000 then v_price * 0.3
+            when v_price > 100000                 then v_price * 0.6
+        end;
+    
+    dbms_output.put_line('Brand: ' ||v_brand || ' , Price: ' 
+        || v_price || ', Tax: : '||v_tax); 
+
+end;
+
+--------------------------------------------
+--Döngüler
+--------------------------------------------
+
+--ALıştırma-1
+
+declare
+  
+    ilk_sayi number := 0;
+    ikinci_sayi number := 1;
+    toplam number;
+      
+    adet number := 10;
+    i number;
+      
+begin
+
+    for i in 2..adet
+    loop
+        toplam := ilk_sayi + ikinci_sayi;
+  
+        ilk_sayi := ikinci_sayi;
+        ikinci_sayi := toplam;
+  
+        dbms_output.put_line(toplam);       
+    end loop;
+  
+end;
+
+
+--ALıştırma-2
+--BASIC-------------------------------------
+
+declare
+    v_tarih date;
+    v_sayac pls_integer := 0;
+begin
+
+    v_tarih := to_date('02.01.2024', 'dd.mm.yyyy');
+    
+    loop
+
+        if v_tarih != to_date('23.04.2024','dd.mm.yyyy') then
+            
+            v_sayac := v_sayac + 1;
+            dbms_output.put_line(v_sayac || '. Toplantı: '|| 
+                to_char(v_tarih, 'dd.mm.yyyy'));
+        
+        end if;
+
+        v_tarih := v_tarih + 14;
+        exit when v_sayac = 10;
+
+    end loop;
+    
+end;
+
+--WHILE-------------------------------------
+declare
+    v_tarih date;
+    v_sayac pls_integer := 0;
+begin
+
+    v_tarih := to_date('02.01.2024', 'dd.mm.yyyy');
+    
+    while v_sayac < 10 loop
+
+        if v_tarih != to_date('23.04.2024','dd.mm.yyyy') then
+            
+            v_sayac := v_sayac + 1;
+            dbms_output.put_line(v_sayac || '. Toplantı: ' || 
+                to_char(v_tarih, 'dd.mm.yyyy'));
+        
+        end if;
+
+        v_tarih := v_tarih + 14;
+        --exit when v_sayac = 10;
+
+    end loop;
+    
+end;
+
+--FOR-------------------------------------
+declare
+    v_tarih date;
+    v_sayac pls_integer := 0;
+begin
+
+    v_tarih := to_date('02.01.2024', 'dd.mm.yyyy');
+    
+    for i in 1..11 loop
+
+        if v_tarih != to_date('23.04.2024', 'dd.mm.yyyy') then
+            
+            v_sayac := v_sayac + 1;
+            dbms_output.put_line(v_sayac || '. Toplantı: ' || 
+                to_char(v_tarih, 'dd.mm.yyyy'));
+        
+        end if;
+
+        v_tarih := v_tarih + 14;
+        --exit when v_sayac = 10;
+
+    end loop;
+    
+end;
+
+--------------------------------------------
+--Continue İfadesi
+--------------------------------------------
+
+declare
+    v_date1 date := to_date('19.04.2024','dd.mm.yyyy');
+    v_date2 date := to_date('20.05.2024','dd.mm.yyyy');
+    v_control boolean := true;
+    v_holiday_control smallint;
+begin
+    
+    while v_control loop
+        
+        v_date1 := v_date1 + 1;
+        
+        if to_char(v_date1,'d') not in (6,7) then
+        
+            select count(*) into v_holiday_control
+            from holidays
+            where holiday_day = to_char(v_date1,'dd')
+                and holiday_month = to_char(v_date1,'mm');
+            
+            if v_holiday_control = 0 then    
+                dbms_output.put_line('Çalışma günü: ' || v_date1);
+            else 
+                dbms_output.put_line('Resmi tatil: ' || v_date1);
+                continue;
+            end if;
+        else
+            dbms_output.put_line('Hafta sonu: ' || v_date1);
+            continue;
+        end if;
+        
+        if v_date1 = v_date2 then
+            v_control := false;
+        end if;
+
+    end loop;
+end; 

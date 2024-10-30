@@ -1,0 +1,204 @@
+--------------------------------------------
+--PL/SQL İçinde Kullanılan SQL Fonksiyonları
+--------------------------------------------
+
+declare
+  v_deger number;
+  v_str  varchar2(50) := 'PL/SQL eğitimi için doğru yerdesiniz';
+  
+begin
+
+  v_deger := length(v_str); 
+  v_deger := months_between(baslangic_tarihi, bitis_tarihi);
+
+end;
+
+--------------------------------------------
+
+declare
+  v_deger number := 1234.567;
+  v_str   varchar2(50) := 'PL/SQL eğitimi için doğru yerdesiniz.';
+  
+begin
+
+  dbms_output.put_line(instr(v_str,'SQL')); 
+  dbms_output.put_line(concat('Tuncay ', 'Tiryaki')); 
+  dbms_output.put_line(to_char(v_deger));
+  dbms_output.put_line(lower(v_str));  
+  dbms_output.put_line(substr(v_str, 8, 7)); 
+  dbms_output.put_line(replace(v_str, 'doğru', 'en doğru'));
+  dbms_output.put_line(round(v_deger,2));
+  dbms_output.put_line(last_day(sysdate));  
+  
+end;
+
+--------------------------------------------
+--Sequence Kullanma
+--------------------------------------------
+
+create sequence sq_temp
+start with 1
+increment by 1;
+
+declare
+  v_seq_number number;
+begin
+  
+  v_seq_number := sq_temp.nextval;
+  dbms_output.put_line('Sıra Numarası:' || v_seq_number);
+  
+end;
+
+begin
+  
+  insert into konum 
+  values (sq_temp.nextval, 'Yeni Konum', 12);
+
+end;
+
+--------------------------------------------
+--Nested (İç İçe) Bloklar
+--------------------------------------------
+
+declare
+    v_disari varchar2(50) := 'Dıştaki Değişken';
+begin
+  
+    declare 
+        v_iceri varchar2(50) := 'İçteki Değişken';
+    begin
+        dbms_output.put_line(v_disari);
+        dbms_output.put_line(v_iceri);
+    end;
+
+    dbms_output.put_line(v_disari);
+end;
+
+--------------------------------------------
+--Değişkenlerin Kapsam Alanı
+--------------------------------------------
+
+declare
+    v_ulke varchar2(50)  := 'Dış - Türkiye';
+    v_sehir varchar2(50) := 'Dış - Ankara';
+begin
+  
+    declare 
+        v_sehir varchar2(50) := 'İç - İstanbul';
+        v_ilce varchar2(50)  := 'İç - Çekmeköy';
+    begin
+        dbms_output.put_line(v_ulke);
+        dbms_output.put_line(v_sehir);
+        dbms_output.put_line(v_ilce);
+    end;
+
+    dbms_output.put_line(v_sehir);
+--    dbms_output.put_line(v_ilce);
+  
+end;
+
+--------------------------------------------
+
+declare
+    v_sayi1 number := 123;
+    v_sayi2 number := 456;
+begin
+  
+    declare
+        v_carpim number;
+    begin
+        v_carpim := v_sayi1 * v_sayi2;
+        dbms_output.put_line('Çarpım: '||v_carpim);
+    end;
+
+    declare
+        v_toplam number;
+    begin
+        v_toplam := v_sayi1 + v_sayi2;
+        dbms_output.put_line('Toplam: '||v_toplam);
+    end;
+  
+end;
+
+--------------------------------------------
+--Nested Bloklarda Qualifier Kullanımı
+--------------------------------------------
+
+begin <<outer>>
+declare
+    v_ulke varchar2(50)  := 'Dış - Türkiye';
+    v_sehir varchar2(50) := 'Dış - Ankara';
+begin
+  
+    declare 
+        v_sehir varchar2(50) := 'İç - İstanbul';
+        v_ilce varchar2(50)  := 'İç - Çekmeköy';
+    begin
+        dbms_output.put_line(v_ulke);
+        dbms_output.put_line(v_sehir);
+        dbms_output.put_line(outer.v_sehir);
+        dbms_output.put_line(v_ilce);
+    end;
+
+end;
+end outer;
+
+-----------------------------------------------------
+--ALIŞTIRMALARIN CEVAPLARI
+-----------------------------------------------------
+
+--------------------------------------------
+--PL/SQL İçinde Kullanılan SQL Fonksiyonları
+--------------------------------------------
+
+declare
+    v_customer_id   orders.customer_id%type;
+    v_order_date    orders.order_date%type;
+    v_shipped_date  orders.shipped_date%type;
+    v_ship_via      varchar2(50);
+    v_freight       orders.freight%type;
+    v_output_text   varchar2(500);
+    c_new_line      char(1) := CHR(10);
+    
+begin
+
+    select 
+        customer_id, order_date, shipped_date, 
+        decode(ship_via, 1, 'Airway', 2, 'Seaway', 3, 'Roadway'), freight
+        into v_customer_id, v_order_date, v_shipped_date, v_ship_via, v_freight
+    from orders 
+    where order_id = 10538;
+    
+    v_output_text := 
+        'Customer ID: '  || lower(v_customer_id) || c_new_line ||
+        'Order Month: '  || to_char(v_order_date, 'Month') || c_new_line ||
+        'Shiiped Date: ' || to_char(v_shipped_date, 'dd.mm.yyyy') || c_new_line ||
+        'Ship Via: '     || v_ship_via || c_new_line ||
+        'Order Amount: ' || to_char(round(v_freight));
+        
+    dbms_output.put_line(v_output_text);
+end;
+
+--------------------------------------------
+--Değişkenlerin Kapsam Alanı
+--------------------------------------------
+
+declare
+    v_net_price smallint;
+    v_brand varchar2(20) := &brand;
+begin
+
+    declare
+       v_price smallint; 
+       v_discount smallint;   
+    begin
+        select price, discount into v_price, v_discount
+        from cars
+        where brand = v_brand;
+        
+        v_net_price := v_price - v_discount;        
+    end;
+    
+     dbms_output.put_line(v_brand ||'''s net price is: '|| v_net_price);
+end;
+/
