@@ -1,5 +1,4 @@
 Bu dokümanda, Oracle'ın kendi container sitesinden image yükleme işlemleri anlatılmaktadır.
-Aşağıdaki adımlar aynı zamanda videoda da anlatılmaktadır. Burada sadece özet bir bilgi bulunmaktadır.
 
 Web Sitesi: https://container-registry.oracle.com/
 
